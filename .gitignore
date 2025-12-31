@@ -1,0 +1,5 @@
+*.env
+node_modules
+server.key
+server.crt
+src-ssr
