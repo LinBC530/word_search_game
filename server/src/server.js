@@ -19,7 +19,7 @@ const cors = require("cors");
 app.use(cors());
 
 // API
-const api = require("./services/api/main");
+const api = require("./routers/main");
 app.use(express.json());
 app.use("/api", api);
 

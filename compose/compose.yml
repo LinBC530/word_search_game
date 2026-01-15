@@ -1,22 +1,29 @@
 services:
   server:
-    image: wsgame:latest
-    container_name: server
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: ws_server
+    env_file:
+      - ../server/.env
+    environment:
+      - NODE_ENV=dev
+      - SSL_KEY=/etc/ssl/server.key
+      - SSL_CERT=/etc/ssl/server.crt
+      - HOST=mysql
+      - USER=user
+      - PASSWORD=${MYSQL_PASSWORD}
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
-    environment:
-      - NODE_ENV=prod
-      - PORT=${SERVER_PORT}
     volumes:
       - ${SSL_KEY_PATH}:/etc/ssl/server.key:ro
       - ${SSL_CRT_PATH}:/etc/ssl/server.crt:ro
     networks:
       - my_network
-    restart: on-failure:3
 
   mysql:
     image: mysql:8
-    container_name: mysql
+    container_name: ws_mysql
     environment:
       MYSQL_USER: user
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
@@ -28,25 +35,22 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - my_network
-    restart: always
     
   nginx:
-    image: nginx:1.27.4-alpine
-    container_name: nginx
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    container_name: ws_nginx
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - /root/conf/nginx:/etc/nginx/conf.d:ro
-      - /root/web/wsgame:/usr/share/nginx/html:ro
       - ${SSL_KEY_PATH}:/etc/ssl/server.key:ro
       - ${SSL_CRT_PATH}:/etc/ssl/server.crt:ro
     depends_on:
       - server
     networks:
       - my_network
-    restart: on-failure:3
-
 volumes:
   mysql_data:
 
